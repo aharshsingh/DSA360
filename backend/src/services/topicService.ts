@@ -24,7 +24,7 @@ const topicService = {
     return;
   },
 
-  async getQuestionsByTopic(categoryId: string) {
+  async getTopicByCategory(categoryId: string) {
     const result = await db
       .select({
         id: topics.id,

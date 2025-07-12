@@ -27,7 +27,7 @@ const topicController = {
   async getTopic(req: Request, res: Response, next: NextFunction) {
     try {
         const { categoryId } = req.params;
-      const topics = await topicService.getQuestionsByTopic(categoryId);
+      const topics = await topicService.getTopicByCategory(categoryId);
       sendResponse(res, "Topic fetched successfully", topics, "SUCCESS");
     } catch (error) {
       return next(error);
