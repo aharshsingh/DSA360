@@ -1,4 +1,8 @@
-import { loginSchema, registerSchema } from "../validators/index";
+import {
+  loginSchema,
+  passwordLessLoginSchema,
+  registerSchema,
+} from "../validators/index";
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import CustomErrorHandler from "../services/customErrorHandler";
@@ -118,6 +122,37 @@ const authController = {
         "token refreshed successfully",
         { newAccessToken },
         "CREATED"
+      );
+    } catch (error) {
+      return next(error);
+    }
+  },
+
+  async passwordLessLogin(req: Request, res: Response, next: NextFunction) {
+    try {
+      let user;
+      const passwordLessLoginBody = validateBody(
+        passwordLessLoginSchema,
+        req.body
+      );
+      if (!passwordLessLoginBody.success) {
+        return next(passwordLessLoginBody.error);
+      }
+
+      const { email } = passwordLessLoginBody.data;
+      const exists = await authService.checkUserAlreadyExists(email);
+      const arr = email.split("@");
+      if (!exists) {
+        user = await authservice.createPasswordLessUser({
+          username: arr[0],
+          email: email,
+        });
+      }
+      const OTP = Math.floor(100000 + Math.random() * 900000).toString();
+      await redisClient.setEx(
+        `otp:${user?.email}`,
+        10 * 60,
+        OTP
       );
     } catch (error) {
       return next(error);

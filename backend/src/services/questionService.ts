@@ -28,6 +28,7 @@ const questionService = {
         title: questions.title,
         problemLink: questions.problemLink,
         difficulty: questions.difficulty,
+        topicId: questionTopicMap.topicId,
       })
       .from(questionTopicMap)
       .innerJoin(questions, eq(questionTopicMap.questionId, questions.id))

@@ -48,3 +48,7 @@ export const userQuestionProgressSchema = z.object({
   status: z.enum(["unsolved", "solved", "in-progress", "revise"]).optional(),
   note: z.string().max(1000, "Note is too long").optional(),
 });
+
+export const passwordLessLoginSchema = z.object({
+  email: z.string().email(),
+})

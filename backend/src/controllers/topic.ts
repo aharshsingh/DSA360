@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { validateBody } from "../utils/validator";
 import { topicSchema } from "../validators";
-import topicService from "../services/topicservice";
+import topicService from "../services/topicService";
 import { sendResponse } from "../utils/response";
 
 const topicController = {

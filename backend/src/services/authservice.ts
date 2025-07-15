@@ -19,6 +19,16 @@ const authService = {
     });
     return newUser[0];
   },
+
+  async createPasswordLessUser(userInfo: User) {
+    const newUser = await db.insert(users).values(userInfo).returning({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      role: users.role,
+    });
+    return newUser[0];
+  },
   
   async getUser(email: string) {
     return await db.query.users.findFirst({
