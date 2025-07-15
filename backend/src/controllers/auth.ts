@@ -12,6 +12,8 @@ import authService from "../services/authservice";
 import jwt from "../services/jwt";
 import { sendResponse } from "../utils/response";
 import redisClient from "../config/redis";
+import { sendEmail } from "../services/email/sendEmail";
+import { passwordlessLoginTemplate } from "../services/email/templates/passwordLessLogin";
 
 const authController = {
   async register(req: Request, res: Response, next: NextFunction) {
@@ -147,13 +149,37 @@ const authController = {
           username: arr[0],
           email: email,
         });
+      } else{
+        user = await authService.getUser(email);
       }
       const OTP = Math.floor(100000 + Math.random() * 900000).toString();
+      await redisClient.setEx(`otp:${user?.email}`, 10 * 60, OTP);
+      if (!user?.email) {
+        throw new Error("User email is missing.");
+      }
+      await sendEmail({
+        to: user?.email,
+        subject: "Your DSA360 One-Time Login Code",
+        html: passwordlessLoginTemplate(OTP, user?.username || "User"),
+      });
+
+      const payload = { email, userId: user.id, role: user.role };
+      const accessToken = jwt.registerAccessToken(payload);
+      const refreshToken = jwt.registerRefreshToken(payload);
+
       await redisClient.setEx(
-        `otp:${user?.email}`,
-        10 * 60,
-        OTP
+        `refresh:${user.id}`,
+        10 * 24 * 60 * 60,
+        refreshToken
       );
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 10 * 24 * 60 * 60 * 1000,
+      });
+      sendResponse(res, "User login successfully", { accessToken }, "SUCCESS");
     } catch (error) {
       return next(error);
     }
